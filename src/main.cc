@@ -22,6 +22,9 @@ bool replace(string& str, const string& from, const string& to) {
 void signal_handler(int hi) {
 	int signal = rl_pending_signal();
 	putchar(10);
+	string prompt = string("\x1b[32m") + string(getenv("USER")) + string(":\x1b[36m") + string(get_current_dir_name()) + "\x1b[0m> ";
+	replace(prompt, getenv("HOME"), "~");
+	printf("%s", prompt.c_str());
 }
 
 int main(int argc, char** argv) {
@@ -85,10 +88,21 @@ int main(int argc, char** argv) {
 		if (args[0] == "exit") {
 			return 0;
 		}
+		if (args[0] == "help") {
+			execute = false;
+			printf("ysh help\n========\n"
+			"cd             - change directory to home\n"
+			"cd [path]      - change directory to path\n"
+			"exit           - exit ysh\n\n"
+			"useful commands\n===============\n"
+			"ls [path]      - view contents of a path\n"
+			"cat [filename] - view contents of a file\n"
+			);
+		}
 		if (args[0] == "cd") {
 			execute = false;
-			if (args.size() == 1) {
-				printf("Usage: cd [path]\n");
+			if ((args.size() == 1) || (args[1] == "")) {
+				chdir(getenv("HOME"));
 			}
 			else {
 				chdir(args[1].c_str());
@@ -103,7 +117,7 @@ int main(int argc, char** argv) {
 			childpid = fork();
 			if (childpid == 0) {
 				if (execvp(programpath.c_str(), (char**) aargv) == -1) {
-					if (args[0] != "") perror("error: ");
+					if (args[0] != "") perror(in.c_str());
 				}
 				exit(0);
 			}
