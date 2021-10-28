@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <unistd.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <readline/readline.h>
@@ -12,18 +13,26 @@ using std::vector;
 
 bool replace(string& str, const string& from, const string& to) {
 	size_t start_pos = str.find(from);
-	if(start_pos == std::string::npos)
+	if (start_pos == std::string::npos)
 		return false;
 	str.replace(start_pos, from.length(), to);
 	return true;
 }
 
+void signal_handler(int hi) {
+	int signal = rl_pending_signal();
+	putchar(10);
+}
+
 int main(int argc, char** argv) {
 	chdir(getenv("HOME"));
+	setenv("SHELL", argv[0], true);
+	signal(SIGINT, signal_handler);
+	rl_set_signals();
 	// variables
 	char*           inr;
 	string          in;
-	bool            runshell = true;
+	bool            runshell;
 	vector <string> args;
 	string          reading;
 	string          prompt;
@@ -34,9 +43,12 @@ int main(int argc, char** argv) {
 	bool            execute;
 	while (runshell) {
 		// take input
-		prompt = string(getenv("USER")) + string(":") + string(get_current_dir_name()) + "> ";
+		prompt = string("\x1b[32m") + string(getenv("USER")) + string(":\x1b[36m") + string(get_current_dir_name()) + "\x1b[0m> ";
 		replace(prompt, getenv("HOME"), "~");
 		inr    = readline(prompt.c_str());
+		if (inr == NULL) {
+			printf("readline error\n");
+		}
 		in     = inr;
 		add_history(inr);
 		free(inr);
@@ -47,6 +59,10 @@ int main(int argc, char** argv) {
 		reading = "";
 		for (size_t i = 0; i<=in.length(); ++i) {
 			if ((in[i] == ' ') || (i == in.length())) {
+				// handle variable
+				if (reading[0] == '$') {
+					replace(reading, reading, getenv(reading.c_str()));
+				}
 				args.push_back(reading);
 				reading = "";
 			}
@@ -96,5 +112,6 @@ int main(int argc, char** argv) {
 			}
 		}
 	}
+	printf("hello\n");
 	return 0;
 }
