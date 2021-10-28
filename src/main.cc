@@ -13,8 +13,9 @@ using std::vector;
 
 bool replace(string& str, const string& from, const string& to) {
 	size_t start_pos = str.find(from);
-	if (start_pos == std::string::npos)
+	if (start_pos == std::string::npos) {
 		return false;
+	}
 	str.replace(start_pos, from.length(), to);
 	return true;
 }
@@ -64,7 +65,7 @@ int main(int argc, char** argv) {
 			if ((in[i] == ' ') || (i == in.length())) {
 				// handle variable
 				if (reading[0] == '$') {
-					replace(reading, reading, getenv(reading.c_str()));
+					reading = getenv(reading.substr(1).c_str());
 				}
 				args.push_back(reading);
 				reading = "";
