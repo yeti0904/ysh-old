@@ -13,6 +13,7 @@
 using std::string;
 using std::vector;
 using std::ifstream;
+using std::ofstream;
 
 bool replace(string& str, const string& from, const string& to) {
 	size_t start_pos = str.find(from);
@@ -35,6 +36,28 @@ int main(int argc, char** argv) {
 	setenv("SHELL", argv[0], true);
 	signal(SIGINT, signal_handler);
 	rl_set_signals();
+
+	map <string, string> variables;
+	map <string, string> aliases;
+
+	string conf_path = getenv("HOME");
+	conf_path += "/.yshrc";
+	if (access(conf_path.c_str(), F_OK) != 0) {
+		ofstream o_fhnd;
+		o_fhnd.open(conf_path);
+		o_fhnd << "alias ls \"ls --color=auto\"\n";
+		o_fhnd.close();
+	}
+
+	string line;
+	ifstream fhnd;
+	fhnd.open(conf_path);
+	if (fhnd.is_open()) {
+		while (getline(fhnd, line)) {
+			interpret(line, variables, aliases);
+		}
+		fhnd.close();
+	}
 
 	bool   script = false;
 	string script_fname;
@@ -59,8 +82,6 @@ int main(int argc, char** argv) {
 	if (script) runshell = false;
 	else        runshell = true;
 
-	map <string, string> variables;
-
 	while (runshell) {
 		// take input
 		prompt = string("\x1b[32m") + string(getenv("USER")) + string(":\x1b[36m") + string(get_current_dir_name()) + "\x1b[0m> ";
@@ -73,7 +94,7 @@ int main(int argc, char** argv) {
 		add_history(inr);
 		free(inr);
 		replace(in, "~", getenv("HOME"));
-		interpret(in, variables);
+		interpret(in, variables, aliases);
 	}
 
 	if (script) {
@@ -82,7 +103,7 @@ int main(int argc, char** argv) {
 			ifstream fhnd;
 			fhnd.open(script_fname);
 			while (getline(fhnd, line)) {
-				interpret(line, variables);
+				interpret(line, variables, aliases);
 			}
 			fhnd.close();
 		}

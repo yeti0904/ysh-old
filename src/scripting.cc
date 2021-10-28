@@ -11,7 +11,7 @@ using std::string;
 using std::vector;
 using std::map;
 
-int interpret(string in, map <string, string> &variables) {
+int interpret(string in, map <string, string> &variables, map <string, string> &aliases) {
 	// variables
 	string          programpath;
 	string          workingpath;
@@ -21,6 +21,14 @@ int interpret(string in, map <string, string> &variables) {
 	vector <string> args;
 	string          reading;
 	bool            inString = false;
+
+	string cmd = in.substr(0, in.find(' '));
+	if (cmd == "") {
+		cmd = in;
+	}
+	if (aliases[cmd] != "") {
+		in.replace(0, in.find(" ") - 1, aliases[cmd]);
+	}
 
 	// seperate string into arguments
 	for (size_t i = 0; i<=in.length(); ++i) {
@@ -88,6 +96,15 @@ int interpret(string in, map <string, string> &variables) {
 		}
 		else {
 			variables[args[1]] = args[2];
+		}
+	}
+	if (args[0] == "alias") {
+		execute = false;
+		if (args.size() == 1) {
+			printf("Usage: alias [key] [value]\n");
+		}
+		else {
+			aliases[args[1]] = args[2];
 		}
 	}
 	if (args[0][0] == '#') {
