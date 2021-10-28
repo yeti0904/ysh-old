@@ -38,6 +38,7 @@ int main(int argc, char** argv) {
 		replace(prompt, getenv("HOME"), "~");
 		inr    = readline(prompt.c_str());
 		in     = inr;
+		add_history(inr);
 		free(inr);
 		replace(in, "~", getenv("HOME"));
 
@@ -55,15 +56,13 @@ int main(int argc, char** argv) {
 
 		// turn into a C string array
 		const char **aargv = new const char* [args.size()+2];
-		aargv[0]             = args[0].c_str();
-		for (int j = 1; j<args.size(); ++j) {
+		for (int j = 0; j<args.size(); ++j) {
 			aargv[j]      = args[j].c_str();
 		}
-		aargv[args.size()+1] = NULL;
+		aargv[args.size()] = NULL;
 
 		// get program path
-		if (access(args[0].c_str(), F_OK) != 0) programpath = string("/usr/bin/") + args[0];
-		else programpath = args[0];
+		programpath = args[0];
 
 		// shell command / code
 		execute = true;
@@ -84,20 +83,17 @@ int main(int argc, char** argv) {
 		}
 
 		// execute
-		if ((access(programpath.c_str(), F_OK) == 0) && execute) {
+		if (execute) {
 			childpid = fork();
 			if (childpid == 0) {
-				if (execv(programpath.c_str(), (char**) aargv) == -1) {
-					if (args[0] != "") printf("%s: no such command\n", args[0].c_str());
+				if (execvp(programpath.c_str(), (char**) aargv) == -1) {
+					if (args[0] != "") perror("error: ");
 				}
 				exit(0);
 			}
 			if (childpid > 0) {
 				childpid = wait(&status);
 			}
-		}
-		else {
-			if (execute) printf("%s: no such file\n", programpath.c_str());
 		}
 	}
 	return 0;
