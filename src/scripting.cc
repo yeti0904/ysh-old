@@ -64,8 +64,12 @@ int interpret(string in, map <string, string> &variables) {
 		"cd [path]      - change directory to path\n"
 		"exit           - exit ysh\n\n"
 		"useful commands\n===============\n"
-		"ls [path]      - view contents of a path\n"
-		"cat [filename] - view contents of a file\n"
+		"ls [path]         - view contents of a path\n"
+		"cat [filename]    - view contents of a file\n"
+		"set [key] [value] - set a variable\n\n"
+		"substitution\n============\n"
+		"$NAME             - enviroment variable\n"
+		"${name}           - ysh variable\n"
 		);
 	}
 	if (args[0] == "cd") {
