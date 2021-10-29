@@ -12,6 +12,7 @@
 using std::string;
 using std::vector;
 using std::map;
+using std::to_string;
 
 int interpret(string in, map <string, string> &variables, map <string, string> &aliases) {
 	// variables
@@ -39,9 +40,9 @@ int interpret(string in, map <string, string> &variables, map <string, string> &
 			if ((reading.length() >= 4) && (reading.substr(0, 2) == "${") && (reading[reading.length()-1] == '}')) {
 				reading = variables[reading.substr(2, reading.length()-3)];
 			}
-			/*else if (reading[0] == '$') {
+			else if (reading[0] == '$') {
 				reading = getenv(reading.substr(1).c_str());
-			}*/	
+			}
 			if (reading != "") args.push_back(reading);
 			reading = "";
 		}
@@ -115,6 +116,88 @@ int interpret(string in, map <string, string> &variables, map <string, string> &
 				printf("Usage: strcmp [result] [str1] [str2]");
 			}
 		}
+		if (args[0] == "strsub") {
+			execute = false;
+			if (args.size() == 5) {
+				variables[args[1]] = args[2].substr(atoi(args[3].c_str()), atoi(args[4].c_str()));
+			}
+			else {
+				printf("Usage: strsub [dest] [str] [start] [count]\n");
+			}
+		}
+		if (args[0] == "strlen") {
+			execute = false;
+			if (args.size() == 3) {
+				variables[args[1]] = to_string(args[2].length());
+			}
+			else {
+				printf("Usage: strlen [dest] [string]\n");
+			}
+		}
+		if (args[0] == "strgetchar") {
+			execute = false;
+			if (args.size() == 4) {
+				variables[args[1]] = args[2][atoi(args[3].c_str())];
+			}
+			else {
+				printf("Usage: strgetchar [dest] [str] [index]\n");
+			}
+		}
+		if (args[0] == "strsetchar") {
+			execute = false;
+			if (args.size() == 4) {
+				variables[args[1]][atoi(args[2].c_str())] = args[3][0];
+			}
+			else {
+				printf("Usage: strsetchar [str] [index] [char]\n");
+			}
+		}
+		if (args[0] == "strins") {
+			execute = false;
+			if (args.size() == 4) {
+				variables[args[1]] = variables[args[1]].insert(atoi(args[2].c_str()), args[3]);
+			}
+			else {
+				printf("Usage: strins [str] [index] [str]\n");
+			}
+		}
+		if (args[0] == "intadd") {
+			execute = false;
+			if (args.size() == 3) {
+				variables[args[1]] = to_string(atoi(variables[args[1]].c_str()) + atoi(args[2].c_str()));
+			}
+			else {
+				printf("Usage: intadd [var] [add]\n");
+			}
+		}
+		if (args[0] == "intsub") {
+			execute = false;
+			if (args.size() == 3) {
+				variables[args[1]] = to_string(atoi(variables[args[1]].c_str()) - atoi(args[2].c_str()));
+			}
+			else {
+				printf("Usage: intsub [var] [sub]\n");
+			}
+		}
+		if (args[0] == "intmult") {
+			execute = false;
+			if (args.size() == 3) {
+				variables[args[1]] = to_string(atoi(variables[args[1]].c_str()) * atoi(args[2].c_str()));
+			}
+			else {
+				printf("Usage: intmult [var] [mult by]\n");
+			}
+		}
+		if (args[0] == "intdiv") {
+			execute = false;
+			if (args.size() == 3) {
+				variables[args[1]] = to_string(atoi(variables[args[1]].c_str()) / atoi(args[2].c_str()));
+			}
+			else {
+				printf("Usage: intdiv [var] [div by]\n");
+			}
+		}
+		
 		if (args[0] == "ifnot") {
 			execute = false;
 			if (args.size() == 3) {
