@@ -7,6 +7,8 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 using std::string;
 using std::vector;
 using std::map;
@@ -39,15 +41,15 @@ int interpret(string in, map <string, string> &variables, map <string, string> &
 			}
 			/*else if (reading[0] == '$') {
 				reading = getenv(reading.substr(1).c_str());
-			}*/
-			args.push_back(reading);
+			}*/	
+			if (reading != "") args.push_back(reading);
 			reading = "";
 		}
 		else if ((in[i] == '"') || (in[i] == '\'')) {
 			inString = !inString;
 		}
 		else
-			reading += in[i];
+			if (inString || (in[i] != 9)) reading += in[i];
 	}
 
 	// turn into a C string array
@@ -58,57 +60,100 @@ int interpret(string in, map <string, string> &variables, map <string, string> &
 	aargv[args.size()] = NULL;
 	
 	// get program path
-	programpath = args[0];
+	if (args.size() != 0) programpath = args[0];
 
 	// shell command / code
 	execute = true;
-	if (args[0] == "exit") {
-		exit(0);
-	}
-	if (args[0] == "help") {
-		execute = false;
-		printf("ysh help\n========\n"
-		"cd             - change directory to home\n"
-		"cd [path]      - change directory to path\n"
-		"exit           - exit ysh\n\n"
-		"useful commands\n===============\n"
-		"ls [path]         - view contents of a path\n"
-		"cat [filename]    - view contents of a file\n"
-		"set [key] [value] - set a variable\n\n"
-		"substitution\n============\n"
-		"$NAME             - enviroment variable\n"
-		"${name}           - ysh variable\n"
-		);
-	}
-	if (args[0] == "cd") {
-		execute = false;
-		if ((args.size() == 1) || (args[1] == "")) {
-		chdir(getenv("HOME"));
+	if (args.size() != 0) {
+		if (args[0] == "exit") {
+			exit(0);
 		}
-		else {
-			chdir(args[1].c_str());
+		if (args[0] == "help") {
+			execute = false;
+			printf("ysh help\n========\n"
+			"cd             - change directory to home\n"
+			"cd [path]      - change directory to path\n"
+			"exit           - exit ysh\n\n"
+			"useful commands\n===============\n"
+			"ls [path]         - view contents of a path\n"
+			"cat [filename]    - view contents of a file\n"
+			"set [key] [value] - set a variable\n\n"
+			"substitution\n============\n"
+			"$NAME             - enviroment variable\n"
+			"${name}           - ysh variable\n"
+			);
 		}
-	}
-	if (args[0] == "set") {
-		execute = false;
-		if (args.size() == 1) {
-			printf("Usage: set [key] [value]\n");
+		if (args[0] == "cd") {
+			execute = false;
+			if ((args.size() == 1) || (args[1] == "")) {
+			chdir(getenv("HOME"));
+			}
+			else {
+				chdir(args[1].c_str());
+			}
 		}
-		else {
-			variables[args[1]] = args[2];
+		if (args[0] == "ifand") {
+			if (args.size() >= 4) {
+				bool result = true;
+				for (size_t i = 2; i<args.size(); ++i) {
+					if (args[i] != "true") {
+						result = false;
+					}
+				}
+				variables[args[1]] = result? "true" : "false";
+			}
+			else {
+				printf("Usage: ifand [result] [var1] [var2] ...\n");
+			}
 		}
-	}
-	if (args[0] == "alias") {
-		execute = false;
-		if (args.size() == 1) {
-			printf("Usage: alias [key] [value]\n");
+		if (args[0] == "strcmp") {
+			execute = false;
+			if (args.size() == 4) {
+				variables[args[1]] = args[2] == args[3]? "true": "false";
+			}
+			else {
+				printf("Usage: strcmp [result] [str1] [str2]");
+			}
 		}
-		else {
-			aliases[args[1]] = args[2];
+		if (args[0] == "ifnot") {
+			execute = false;
+			if (args.size() == 3) {
+				variables[args[1]] = variables[args[2]] != "true"? "true" : "false";
+			}
+			else {
+				printf("Usage: ifnot [result] [boolean]\n");
+			}
 		}
-	}
-	if (args[0][0] == '#') {
-		execute = false;
+		if (args[0] == "input") {
+			execute = false;
+			if (args.size() == 3) {
+				variables[args[1]] = string(readline(args[2].c_str()));
+			}
+			else {
+				printf("Usage: input [result] [prompt]");
+			}
+		}
+		if (args[0] == "set") {
+			execute = false;
+			if (args.size() == 1) {
+				printf("Usage: set [key] [value]\n");
+			}
+			else {
+				variables[args[1]] = args[2];
+			}
+		}
+		if (args[0] == "alias") {
+			execute = false;
+			if (args.size() == 1) {
+				printf("Usage: alias [key] [value]\n");
+			}
+			else {
+				aliases[args[1]] = args[2];
+			}
+		}
+		if (args[0][0] == '#') {
+			execute = false;
+		}
 	}
 
 	// execute

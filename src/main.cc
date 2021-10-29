@@ -37,6 +37,8 @@ int main(int argc, char** argv) {
 	signal(SIGINT, signal_handler);
 	rl_set_signals();
 
+	bool inIf = false;
+
 	map <string, string> variables;
 	map <string, string> aliases;
 
@@ -53,8 +55,18 @@ int main(int argc, char** argv) {
 	ifstream fhnd;
 	fhnd.open(conf_path);
 	if (fhnd.is_open()) {
+		inIf = false;
+		string ifbool;
 		while (getline(fhnd, line)) {
-			interpret(line, variables, aliases);
+			if (line.substr(0, 3) == "if ") {
+				inIf = true;
+				ifbool = line.substr(3);
+			}
+			else if (line == "end") {
+				inIf = false;
+			}
+			else if (!inIf || ((line.length() >= 5) && inIf && (variables[ifbool] == "true")))
+				interpret(line, variables, aliases);
 		}
 		fhnd.close();
 	}
@@ -101,9 +113,19 @@ int main(int argc, char** argv) {
 		if (access(script_fname.c_str(), F_OK) == 0) {
 			string line;
 			ifstream fhnd;
+			inIf = false;
 			fhnd.open(script_fname);
+			string ifbool;
 			while (getline(fhnd, line)) {
-				interpret(line, variables, aliases);
+				if (line.substr(0, 3) == "if ") {
+					inIf = true;
+					ifbool = line.substr(3);
+				}
+				else if (line == "end") {
+					inIf = false;
+				}
+				else if (!inIf || ((line.length() >= 5) && inIf && (variables[ifbool] == "true")))
+					interpret(line, variables, aliases);
 			}
 			fhnd.close();
 		}
