@@ -52,7 +52,13 @@ int main(int argc, char** argv) {
 	if (access(conf_path.c_str(), F_OK) != 0) {
 		ofstream o_fhnd;
 		o_fhnd.open(conf_path);
-		o_fhnd << "alias ls \"ls --color=auto\"\n";
+		string defaultprompt;
+		defaultprompt = "\x1b[32m&u:\x1b[36m&wd\x1b[0m> ";
+		o_fhnd << "# ysh dotfile\n";
+		o_fhnd << "# you can use this file for customising ysh\n";
+		o_fhnd << "set YSH_PROMPT \"" + defaultprompt + "\"\n\n";
+		o_fhnd << "# aliases\n";
+		o_fhnd << "# create an alias with: alias <alias name> <command>\n";
 		o_fhnd.close();
 	}
 
@@ -102,7 +108,9 @@ int main(int argc, char** argv) {
 	while (runshell) {
 		// take input
 		char* currentdir = get_current_dir_name();
-		prompt = string("\x1b[32m") + string(getenv("USER")) + string(":\x1b[36m") + string(currentdir) + "\x1b[0m> ";
+		prompt = variables["YSH_PROMPT"];
+		replace(prompt, "&u", getenv("USER"));
+		replace(prompt, "&wd", currentdir);
 		free(currentdir);
 		replace(prompt, getenv("HOME"), "~");
 		inr    = readline(prompt.c_str());

@@ -14,6 +14,15 @@ using std::vector;
 using std::map;
 using std::to_string;
 
+bool strreplace(string& str, const string& from, const string& to) {
+	size_t start_pos = str.find(from);
+	if (start_pos == std::string::npos) {
+		return false;
+	}
+	str.replace(start_pos, from.length(), to);
+	return true;
+}
+
 int interpret(string in, map <string, string> &variables, map <string, string> &aliases) {
 	// variables
 	string          programpath;
@@ -218,6 +227,10 @@ int interpret(string in, map <string, string> &variables, map <string, string> &
 			}
 		}
 		if (args[0] == "set") {
+			strreplace(in, "&u", getenv("USER"));
+			char* wd = get_current_dir_name();
+			strreplace(in, "&wd", wd);
+			free(wd);
 			execute = false;
 			if (args.size() == 1) {
 				printf("Usage: set [key] [value]\n");
