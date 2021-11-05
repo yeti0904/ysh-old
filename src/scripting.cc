@@ -59,7 +59,7 @@ int interpret(string in, map <string, string> &variables, map <string, string> &
 		aargv[j]      = args[j].c_str();
 	}
 	aargv[args.size()] = NULL;
-	
+
 	// get program path
 	if (args.size() != 0) programpath = args[0];
 
@@ -67,6 +67,7 @@ int interpret(string in, map <string, string> &variables, map <string, string> &
 	execute = true;
 	if (args.size() != 0) {
 		if (args[0] == "exit") {
+			delete[] aargv;
 			exit(0);
 		}
 		if (args[0] == "help") {
@@ -252,5 +253,6 @@ int interpret(string in, map <string, string> &variables, map <string, string> &
 			childpid = wait(&status);
 		}
 	}
+	delete[] aargv;
 	return 0;
 }

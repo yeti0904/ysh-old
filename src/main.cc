@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <vector>
 #include <fstream>
@@ -33,6 +34,10 @@ void signal_handler(int hi) {
 }
 
 int main(int argc, char** argv) {
+	if (argc >= 2 && (strcmp(argv[1], "--version") == 0)) {
+		printf("ysh 1.9");
+		return 0;
+	}
 	setenv("SHELL", argv[0], true);
 	signal(SIGINT, signal_handler);
 	rl_set_signals();
@@ -96,7 +101,9 @@ int main(int argc, char** argv) {
 
 	while (runshell) {
 		// take input
-		prompt = string("\x1b[32m") + string(getenv("USER")) + string(":\x1b[36m") + string(get_current_dir_name()) + "\x1b[0m> ";
+		char* currentdir = get_current_dir_name();
+		prompt = string("\x1b[32m") + string(getenv("USER")) + string(":\x1b[36m") + string(currentdir) + "\x1b[0m> ";
+		free(currentdir);
 		replace(prompt, getenv("HOME"), "~");
 		inr    = readline(prompt.c_str());
 		if (inr == NULL) {
